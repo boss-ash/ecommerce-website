@@ -1,225 +1,354 @@
-<?php
-$statement = $pdo->prepare("SELECT * FROM tbl_settings WHERE id=1");
-$statement->execute();
-$result = $statement->fetchAll(PDO::FETCH_ASSOC);
-foreach ($result as $row)
-{
-	$footer_about = $row['footer_about'];
-	$contact_email = $row['contact_email'];
-	$contact_phone = $row['contact_phone'];
-	$contact_address = $row['contact_address'];
-	$footer_copyright = $row['footer_copyright'];
-	$total_recent_post_footer = $row['total_recent_post_footer'];
-    $total_popular_post_footer = $row['total_popular_post_footer'];
-    $newsletter_on_off = $row['newsletter_on_off'];
-    $before_body = $row['before_body'];
-}
-?>
-
-
-<?php if($newsletter_on_off == 1): ?>
-<section class="home-newsletter">
-	<div class="container">
-		<div class="row">
-			<div class="col-md-6 col-md-offset-3">
-				<div class="single">
-					<?php
-			if(isset($_POST['form_subscribe']))
-			{
-
-				if(empty($_POST['email_subscribe'])) 
-			    {
-			        $valid = 0;
-			        $error_message1 .= LANG_VALUE_131;
-			    }
-			    else
-			    {
-			    	if (filter_var($_POST['email_subscribe'], FILTER_VALIDATE_EMAIL) === false)
-				    {
-				        $valid = 0;
-				        $error_message1 .= LANG_VALUE_134;
-				    }
-				    else
-				    {
-				    	$statement = $pdo->prepare("SELECT * FROM tbl_subscriber WHERE subs_email=?");
-				    	$statement->execute(array($_POST['email_subscribe']));
-				    	$total = $statement->rowCount();							
-				    	if($total)
-				    	{
-				    		$valid = 0;
-				        	$error_message1 .= LANG_VALUE_147;
-				    	}
-				    	else
-				    	{
-				    		// Sending email to the requested subscriber for email confirmation
-				    		// Getting activation key to send via email. also it will be saved to database until user click on the activation link.
-				    		$key = md5(uniqid(rand(), true));
-
-				    		// Getting current date
-				    		$current_date = date('Y-m-d');
-
-				    		// Getting current date and time
-				    		$current_date_time = date('Y-m-d H:i:s');
-
-				    		// Inserting data into the database
-				    		$statement = $pdo->prepare("INSERT INTO tbl_subscriber (subs_email,subs_date,subs_date_time,subs_hash,subs_active) VALUES (?,?,?,?,?)");
-				    		$statement->execute(array($_POST['email_subscribe'],$current_date,$current_date_time,$key,0));
-
-				    		// Sending Confirmation Email
-				    		$to = $_POST['email_subscribe'];
-							$subject = 'Subscriber Email Confirmation';
-							
-							// Getting the url of the verification link
-							$verification_url = BASE_URL.'verify.php?email='.$to.'&key='.$key;
-
-							$message = '
-Thanks for your interest to subscribe our newsletter!<br><br>
-Please click this link to confirm your subscription:
-					'.$verification_url.'<br><br>
-This link will be active only for 24 hours.
-					';
-
-							$headers = 'From: ' . $contact_email . "\r\n" .
-								   'Reply-To: ' . $contact_email . "\r\n" .
-								   'X-Mailer: PHP/' . phpversion() . "\r\n" . 
-								   "MIME-Version: 1.0\r\n" . 
-								   "Content-Type: text/html; charset=ISO-8859-1\r\n";
-
-							// Sending the email
-							mail($to, $subject, $message, $headers);
-
-							$success_message1 = LANG_VALUE_136;
-				    	}
-				    }
-			    }
-			}
-			if($error_message1 != '') {
-				echo "<script>alert('".$error_message1."')</script>";
-			}
-			if($success_message1 != '') {
-				echo "<script>alert('".$success_message1."')</script>";
-			}
-			?>
-				<form action="" method="post">
-					<?php $csrf->echoInputField(); ?>
-					<h2><?php echo LANG_VALUE_93; ?></h2>
-					<div class="input-group">
-			        	<input type="email" class="form-control" placeholder="<?php echo LANG_VALUE_95; ?>" name="email_subscribe">
-			         	<span class="input-group-btn">
-			         	<button class="btn btn-theme" type="submit" name="form_subscribe"><?php echo LANG_VALUE_92; ?></button>
-			         	</span>
-			        </div>
-				</div>
-				</form>
-			</div>
 		</div>
+
 	</div>
-</section>
-<?php endif; ?>
+
+	<script src="js/jquery-2.2.4.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/jquery.dataTables.min.js"></script>
+	<script src="js/dataTables.bootstrap.min.js"></script>
+	<script src="js/select2.full.min.js"></script>
+	<script src="js/jquery.inputmask.js"></script>
+	<script src="js/jquery.inputmask.date.extensions.js"></script>
+	<script src="js/jquery.inputmask.extensions.js"></script>
+	<script src="js/moment.min.js"></script>
+	<script src="js/bootstrap-datepicker.js"></script>
+	<script src="js/icheck.min.js"></script>
+	<script src="js/fastclick.js"></script>
+	<script src="js/jquery.sparkline.min.js"></script>
+	<script src="js/jquery.slimscroll.min.js"></script>
+	<script src="js/jquery.fancybox.pack.js"></script>
+	<script src="js/app.min.js"></script>
+	<script src="js/jscolor.js"></script>
+	<script src="js/on-off-switch.js"></script>
+    <script src="js/on-off-switch-onload.js"></script>
+    <script src="js/clipboard.min.js"></script>
+	<script src="js/demo.js"></script>
+	<script src="js/summernote.js"></script>
+
+	<script>
+		$(document).ready(function() {
+	        $('#editor1').summernote({
+	        	height: 300
+	        });
+	        $('#editor2').summernote({
+	        	height: 300
+	        });
+	        $('#editor3').summernote({
+	        	height: 300
+	        });
+	        $('#editor4').summernote({
+	        	height: 300
+	        });
+	        $('#editor5').summernote({
+	        	height: 300
+	        });
+	    });
+		$(".top-cat").on('change',function(){
+			var id=$(this).val();
+			var dataString = 'id='+ id;
+			$.ajax
+			({
+				type: "POST",
+				url: "get-mid-category.php",
+				data: dataString,
+				cache: false,
+				success: function(html)
+				{
+					$(".mid-cat").html(html);
+				}
+			});			
+		});
+		$(".mid-cat").on('change',function(){
+			var id=$(this).val();
+			var dataString = 'id='+ id;
+			$.ajax
+			({
+				type: "POST",
+				url: "get-end-category.php",
+				data: dataString,
+				cache: false,
+				success: function(html)
+				{
+					$(".end-cat").html(html);
+				}
+			});			
+		});
+	</script>
+
+	<script>
+	  $(function () {
+
+	    //Initialize Select2 Elements
+	    $(".select2").select2();
+
+	    //Datemask dd/mm/yyyy
+	    $("#datemask").inputmask("dd-mm-yyyy", {"placeholder": "dd-mm-yyyy"});
+	    //Datemask2 mm/dd/yyyy
+	    $("#datemask2").inputmask("mm-dd-yyyy", {"placeholder": "mm-dd-yyyy"});
+	    //Money Euro
+	    $("[data-mask]").inputmask();
+
+	    //Date picker
+	    $('#datepicker').datepicker({
+	      autoclose: true,
+	      format: 'dd-mm-yyyy',
+	      todayBtn: 'linked',
+	    });
+
+	    $('#datepicker1').datepicker({
+	      autoclose: true,
+	      format: 'dd-mm-yyyy',
+	      todayBtn: 'linked',
+	    });
+
+	    //iCheck for checkbox and radio inputs
+	    $('input[type="checkbox"].minimal, input[type="radio"].minimal').iCheck({
+	      checkboxClass: 'icheckbox_minimal-blue',
+	      radioClass: 'iradio_minimal-blue'
+	    });
+	    //Red color scheme for iCheck
+	    $('input[type="checkbox"].minimal-red, input[type="radio"].minimal-red').iCheck({
+	      checkboxClass: 'icheckbox_minimal-red',
+	      radioClass: 'iradio_minimal-red'
+	    });
+	    //Flat red color scheme for iCheck
+	    $('input[type="checkbox"].flat-red, input[type="radio"].flat-red').iCheck({
+	      checkboxClass: 'icheckbox_flat-green',
+	      radioClass: 'iradio_flat-green'
+	    });
 
 
 
+	    $("#example1").DataTable();
+	    $('#example2').DataTable({
+	      "paging": true,
+	      "lengthChange": false,
+	      "searching": false,
+	      "ordering": true,
+	      "info": true,
+	      "autoWidth": false
+	    });
 
-<div class="footer-bottom">
-	<div class="container">
-		<div class="row">
-			<div class="col-md-12 copyright">
-				<?php echo $footer_copyright; ?>
-			</div>
-		</div>
-	</div>
-</div>
+	    $('#confirm-delete').on('show.bs.modal', function(e) {
+	      $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
+	    });
+		
+		$('#confirm-approve').on('show.bs.modal', function(e) {
+	      $(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
+	    });
+ 
+	  });
 
+		function confirmDelete()
+	    {
+	        return confirm("Are you sure want to delete this data?");
+	    }
+	    function confirmActive()
+	    {
+	        return confirm("Are you sure want to Active?");
+	    }
+	    function confirmInactive()
+	    {
+	        return confirm("Are you sure want to Inactive?");
+	    }
 
-<a href="#" class="scrollup">
-	<i class="fa fa-angle-up"></i>
-</a>
+	</script>
 
-<?php
-$statement = $pdo->prepare("SELECT * FROM tbl_settings WHERE id=1");
-$statement->execute();
-$result = $statement->fetchAll(PDO::FETCH_ASSOC);                            
-foreach ($result as $row) {
-    $stripe_public_key = $row['stripe_public_key'];
-    $stripe_secret_key = $row['stripe_secret_key'];
-}
-?>
+	<script type="text/javascript">
+		function showDiv(elem){
+			if(elem.value == 0) {
+		      	document.getElementById('photo_div').style.display = "none";
+		      	document.getElementById('icon_div').style.display = "none";
+		   	}
+		   	if(elem.value == 1) {
+		      	document.getElementById('photo_div').style.display = "block";
+		      	document.getElementById('photo_div_existing').style.display = "block";
+		      	document.getElementById('icon_div').style.display = "none";
+		   	}
+		   	if(elem.value == 2) {
+		      	document.getElementById('photo_div').style.display = "none";
+		      	document.getElementById('photo_div_existing').style.display = "none";
+		      	document.getElementById('icon_div').style.display = "block";
+		   	}
+		}
+		function showContentInputArea(elem){
+		   if(elem.value == 'Full Width Page Layout') {
+		      	document.getElementById('showPageContent').style.display = "block";
+		   } else {
+		   		document.getElementById('showPageContent').style.display = "none";
+		   }
+		}
+	</script>
 
-<script src="assets/js/jquery-2.2.4.min.js"></script>
-<script src="assets/js/bootstrap.min.js"></script>
-<script src="https://js.stripe.com/v2/"></script>
-<script src="assets/js/megamenu.js"></script>
-<script src="assets/js/owl.carousel.min.js"></script>
-<script src="assets/js/owl.animate.js"></script>
-<script src="assets/js/jquery.bxslider.min.js"></script>
-<script src="assets/js/jquery.magnific-popup.min.js"></script>
-<script src="assets/js/rating.js"></script>
-<script src="assets/js/jquery.touchSwipe.min.js"></script>
-<script src="assets/js/bootstrap-touch-slider.js"></script>
-<script src="assets/js/select2.full.min.js"></script>
-<script src="assets/js/custom.js"></script>
-<script>
-	function confirmDelete()
-	{
-	    return confirm("Sure you want to delete this data?");
-	}
-	$(document).ready(function () {
-		advFieldsStatus = $('#advFieldsStatus').val();
+	<script type="text/javascript">
 
-		$('#paypal_form').hide();
-		$('#stripe_form').hide();
-		$('#bank_form').hide();
+        $(document).ready(function () {
 
-        $('#advFieldsStatus').on('change',function() {
-            advFieldsStatus = $('#advFieldsStatus').val();
-            if ( advFieldsStatus == '' ) {
-            	$('#paypal_form').hide();
-				$('#stripe_form').hide();
-				$('#bank_form').hide();
-            } else if ( advFieldsStatus == 'PayPal' ) {
-               	$('#paypal_form').show();
-				$('#stripe_form').hide();
-				$('#bank_form').hide();
-            } else if ( advFieldsStatus == 'Stripe' ) {
-               	$('#paypal_form').hide();
-				$('#stripe_form').show();
-				$('#bank_form').hide();
-            } else if ( advFieldsStatus == 'Bank Deposit' ) {
-            	$('#paypal_form').hide();
-				$('#stripe_form').hide();
-				$('#bank_form').show();
-            }
+            $("#btnAddNew").click(function () {
+
+		        var rowNumber = $("#ProductTable tbody tr").length;
+
+		        var trNew = "";              
+
+		        var addLink = "<div class=\"upload-btn" + rowNumber + "\"><input type=\"file\" name=\"photo[]\"  style=\"margin-bottom:5px;\"></div>";
+		           
+		        var deleteRow = "<a href=\"javascript:void()\" class=\"Delete btn btn-danger btn-xs\">X</a>";
+
+		        trNew = trNew + "<tr> ";
+
+		        trNew += "<td>" + addLink + "</td>";
+		        trNew += "<td style=\"width:28px;\">" + deleteRow + "</td>";
+
+		        trNew = trNew + " </tr>";
+
+		        $("#ProductTable tbody").append(trNew);
+
+		    });
+
+		    $('#ProductTable').delegate('a.Delete', 'click', function () {
+		        $(this).parent().parent().fadeOut('slow').remove();
+		        return false;
+		    });
+
         });
-	});
 
 
-	$(document).on('submit', '#stripe_form', function () {
-        // createToken returns immediately - the supplied callback submits the form if there are no errors
-        $('#submit-button').prop("disabled", true);
-        $("#msg-container").hide();
-        Stripe.card.createToken({
-            number: $('.card-number').val(),
-            cvc: $('.card-cvc').val(),
-            exp_month: $('.card-expiry-month').val(),
-            exp_year: $('.card-expiry-year').val()
-            // name: $('.card-holder-name').val()
-        }, stripeResponseHandler);
-        return false;
-    });
-    Stripe.setPublishableKey('<?php echo $stripe_public_key; ?>');
-    function stripeResponseHandler(status, response) {
-        if (response.error) {
-            $('#submit-button').prop("disabled", false);
-            $("#msg-container").html('<div style="color: red;border: 1px solid;margin: 10px 0px;padding: 5px;"><strong>Error:</strong> ' + response.error.message + '</div>');
-            $("#msg-container").show();
-        } else {
-            var form$ = $("#stripe_form");
-            var token = response['id'];
-            form$.append("<input type='hidden' name='stripeToken' value='" + token + "' />");
-            form$.get(0).submit();
+
+        var items = [];
+        for( i=1; i<=24; i++ ) {
+        	items[i] = document.getElementById("tabField"+i);
         }
-    }
-</script>
-<?php echo $before_body; ?>
+
+		items[1].style.display = 'block';
+		items[2].style.display = 'block';
+		items[3].style.display = 'block';
+		items[4].style.display = 'none';
+
+		items[5].style.display = 'block';
+		items[6].style.display = 'block';
+		items[7].style.display = 'block';
+		items[8].style.display = 'none';
+
+		items[9].style.display = 'block';
+		items[10].style.display = 'block';
+		items[11].style.display = 'block';
+		items[12].style.display = 'none';
+
+		items[13].style.display = 'block';
+		items[14].style.display = 'block';
+		items[15].style.display = 'block';
+		items[16].style.display = 'none';
+
+		items[17].style.display = 'block';
+		items[18].style.display = 'block';
+		items[19].style.display = 'block';
+		items[20].style.display = 'none';
+
+		items[21].style.display = 'block';
+		items[22].style.display = 'block';
+		items[23].style.display = 'block';
+		items[24].style.display = 'none';
+
+		function funcTab1(elem) {
+			var txt = elem.value;
+			if(txt == 'Image Advertisement') {
+				items[1].style.display = 'block';
+		       	items[2].style.display = 'block';
+		       	items[3].style.display = 'block';
+		       	items[4].style.display = 'none';
+			} 
+			if(txt == 'Adsense Code') {
+				items[1].style.display = 'none';
+		       	items[2].style.display = 'none';
+		       	items[3].style.display = 'none';
+		       	items[4].style.display = 'block';
+			}
+		};
+
+		function funcTab2(elem) {
+			var txt = elem.value;
+			if(txt == 'Image Advertisement') {
+				items[5].style.display = 'block';
+		       	items[6].style.display = 'block';
+		       	items[7].style.display = 'block';
+		       	items[8].style.display = 'none';
+			} 
+			if(txt == 'Adsense Code') {
+				items[5].style.display = 'none';
+		       	items[6].style.display = 'none';
+		       	items[7].style.display = 'none';
+		       	items[8].style.display = 'block';
+			}
+		};
+
+		function funcTab3(elem) {
+			var txt = elem.value;
+			if(txt == 'Image Advertisement') {
+				items[9].style.display = 'block';
+		       	items[10].style.display = 'block';
+		       	items[11].style.display = 'block';
+		       	items[12].style.display = 'none';
+			} 
+			if(txt == 'Adsense Code') {
+				items[9].style.display = 'none';
+		       	items[10].style.display = 'none';
+		       	items[11].style.display = 'none';
+		       	items[12].style.display = 'block';
+			}
+		};
+
+		function funcTab4(elem) {
+			var txt = elem.value;
+			if(txt == 'Image Advertisement') {
+				items[13].style.display = 'block';
+		       	items[14].style.display = 'block';
+		       	items[15].style.display = 'block';
+		       	items[16].style.display = 'none';
+			} 
+			if(txt == 'Adsense Code') {
+				items[13].style.display = 'none';
+		       	items[14].style.display = 'none';
+		       	items[15].style.display = 'none';
+		       	items[16].style.display = 'block';
+			}
+		};
+
+		function funcTab5(elem) {
+			var txt = elem.value;
+			if(txt == 'Image Advertisement') {
+				items[17].style.display = 'block';
+		       	items[18].style.display = 'block';
+		       	items[19].style.display = 'block';
+		       	items[20].style.display = 'none';
+			} 
+			if(txt == 'Adsense Code') {
+				items[17].style.display = 'none';
+		       	items[18].style.display = 'none';
+		       	items[19].style.display = 'none';
+		       	items[20].style.display = 'block';
+			}
+		};
+
+		function funcTab6(elem) {
+			var txt = elem.value;
+			if(txt == 'Image Advertisement') {
+				items[21].style.display = 'block';
+		       	items[22].style.display = 'block';
+		       	items[23].style.display = 'block';
+		       	items[24].style.display = 'none';
+			} 
+			if(txt == 'Adsense Code') {
+				items[21].style.display = 'none';
+		       	items[22].style.display = 'none';
+		       	items[23].style.display = 'none';
+		       	items[24].style.display = 'block';
+			}
+		};
+
+
+
+        
+    </script>
+
 </body>
 </html>

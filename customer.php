@@ -2,10 +2,7 @@
 
 <section class="content-header">
 	<div class="content-header-left">
-		<h1>View FAQs</h1>
-	</div>
-	<div class="content-header-right">
-		<a href="faq-add.php" class="btn btn-primary btn-sm">Add FAQ</a>
+		<h1>View Customers</h1>
 	</div>
 </section>
 
@@ -17,26 +14,43 @@
 					<table id="example1" class="table table-bordered table-hover table-striped">
 						<thead>
 							<tr>
-								<th width="30">#</th>
-								<th width="100">Title</th>
-								<th width="80">Action</th>
+								<th width="10">#</th>
+								<th width="180">Name</th>
+								<th width="150">Email Address</th>
+								<th width="180">Country, City, State</th>
+								<th>Status</th>
+								<th width="100">Change Status</th>
+								<th width="100">Action</th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php
 							$i=0;
-							$statement = $pdo->prepare("SELECT * FROM tbl_faq");
+							$statement = $pdo->prepare("SELECT * 
+														FROM tbl_customer t1
+														JOIN tbl_country t2
+														ON t1.cust_country = t2.country_id
+													");
 							$statement->execute();
-							$result = $statement->fetchAll(PDO::FETCH_ASSOC);
+							$result = $statement->fetchAll(PDO::FETCH_ASSOC);						
 							foreach ($result as $row) {
 								$i++;
 								?>
-								<tr>
+								<tr class="<?php if($row['cust_status']==1) {echo 'bg-g';}else {echo 'bg-r';} ?>">
 									<td><?php echo $i; ?></td>
-									<td><?php echo $row['faq_title']; ?></td>
-									<td>										
-										<a href="faq-edit.php?id=<?php echo $row['faq_id']; ?>" class="btn btn-primary btn-xs">Edit</a>
-										<a href="#" class="btn btn-danger btn-xs" data-href="faq-delete.php?id=<?php echo $row['faq_id']; ?>" data-toggle="modal" data-target="#confirm-delete">Delete</a>  
+									<td><?php echo $row['cust_name']; ?></td>
+									<td><?php echo $row['cust_email']; ?></td>
+									<td>
+										<?php echo $row['country_name']; ?><br>
+										<?php echo $row['cust_city']; ?><br>
+										<?php echo $row['cust_state']; ?>
+									</td>
+									<td><?php if($row['cust_status']==1) {echo 'Active';} else {echo 'Inactive';} ?></td>
+									<td>
+										<a href="customer-change-status.php?id=<?php echo $row['cust_id']; ?>" class="btn btn-success btn-xs">Change Status</a>
+									</td>
+									<td>
+										<a href="#" class="btn btn-danger btn-xs" data-href="customer-delete.php?id=<?php echo $row['cust_id']; ?>" data-toggle="modal" data-target="#confirm-delete">Delete</a>
 									</td>
 								</tr>
 								<?php
